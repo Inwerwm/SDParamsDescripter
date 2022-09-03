@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+      "SDParamsDescripter (Package)": {
+        "commandName": "MsixPackage"
+      },
+      "SDParamsDescripter (Unpackaged)": {
+        "commandName": "Project"
+      }
+    }
+}
