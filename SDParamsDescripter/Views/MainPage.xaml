@@ -4,14 +4,26 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:conv="using:CommunityToolkit.WinUI.UI.Converters"
     mc:Ignorable="d"
     x:Name="MainContainer" >
+
+    <Page.Resources>
+        <conv:BoolToVisibilityConverter x:Key="boolToVisibility" />
+    </Page.Resources>
 
     <ScrollViewer AllowDrop="True" Drop="{x:Bind ViewModel.ReadDropedFile}" DragOver="{x:Bind ViewModel.AcceptDropFile}" >
         <StackPanel Grid.Row="1" CanDrag="True">
 
             <Button Content="Read" Command="{x:Bind ViewModel.ReadFileCommand}" Margin="20, 10" HorizontalAlignment="Stretch"/>
-            <ToggleSwitch OnContent="Auto Post to Twitter" OffContent="Only Local" IsOn="{x:Bind ViewModel.EnableAutoPost}" Margin="20, 10" HorizontalAlignment="Center"/>
+            <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
+                <StackPanel Margin="20, 10">
+                    <ToggleSwitch OnContent="Auto Post to Twitter" OffContent="Only Local" IsOn="{x:Bind ViewModel.EnableAutoPost, Mode=TwoWay}"/>
+                    <StackPanel Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=TwoWay}" >
+                        <TextBlock Text="AAAAA" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
 
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
                 <Grid Margin="12.5, 5, 12.5, 5">

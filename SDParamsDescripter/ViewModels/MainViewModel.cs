@@ -30,11 +30,26 @@ public partial class MainViewModel : ObservableRecipient
     [ObservableProperty]
     private bool _enableAutoPost;
 
-    private IDescriptionSeparator Separator { get; }
-    private RealEsrGan UpScaler { get; }
-    private FileSystemWatcher Watcher { get; }
-    private Twitter Twitter { get; }
-    public DispatcherQueue? DispatcherQueue { get; set; }
+    private IDescriptionSeparator Separator
+    {
+        get;
+    }
+    private RealEsrGan UpScaler
+    {
+        get;
+    }
+    private FileSystemWatcher Watcher
+    {
+        get;
+    }
+    private Twitter? Twitter
+    {
+        get; set;
+    }
+    public DispatcherQueue? DispatcherQueue
+    {
+        get; set;
+    }
 
     public MainViewModel()
     {
@@ -45,15 +60,13 @@ public partial class MainViewModel : ObservableRecipient
         _upscaleImageDir = "F:\\Generated\\";
         _conceptName = "";
         _isUpscalingInProgress = false;
-        _enableAutoPost = true;
+        _enableAutoPost = false;
         UpScaler = new RealEsrGan();
         Watcher = new()
         {
             NotifyFilter = NotifyFilters.FileName,
             Filter = "*.png"
         };
-
-        Twitter = new Twitter(Properties.Resources.APIKey, Properties.Resources.APIKeySecret);
 
         App.MainWindow.Closed += DisposeMembers;
     }
@@ -107,7 +120,7 @@ public partial class MainViewModel : ObservableRecipient
             var isGeneratedTarget = e.FullPath == savePath;
             if (!isGeneratedTarget) return;
 
-            if (EnableAutoPost)
+            if (Twitter is not null && EnableAutoPost)
             {
                 await Twitter.Post(PostText, savePath, Replies.FullParameters);
             }
