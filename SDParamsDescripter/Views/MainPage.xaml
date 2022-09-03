@@ -19,9 +19,6 @@
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
                 <StackPanel Margin="20, 10">
                     <ToggleSwitch OnContent="Auto Post to Twitter" OffContent="Only Local" IsOn="{x:Bind ViewModel.EnableAutoPost, Mode=TwoWay}"/>
-                    <StackPanel Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=TwoWay}" >
-                        <TextBlock Text="AAAAA" />
-                    </StackPanel>
                 </StackPanel>
             </Border>
 
