@@ -27,11 +27,29 @@ public partial class MainViewModel : ObservableRecipient
     private bool _doesUseAnimeModel;
     [ObservableProperty]
     private bool _isUpscalingInProgress;
+    [ObservableProperty]
+    private bool _enableAutoPost;
 
-    private IDescriptionSeparator Separator { get; }
-    private RealEsrGan UpScaler { get; }
-    private FileSystemWatcher Watcher { get; }
-    public DispatcherQueue? DispatcherQueue { get; set; }
+    private IDescriptionSeparator Separator
+    {
+        get;
+    }
+    private RealEsrGan UpScaler
+    {
+        get;
+    }
+    private FileSystemWatcher Watcher
+    {
+        get;
+    }
+    private Twitter Twitter
+    {
+        get;
+    }
+    public DispatcherQueue? DispatcherQueue
+    {
+        get; set;
+    }
 
     public MainViewModel()
     {
@@ -42,13 +60,18 @@ public partial class MainViewModel : ObservableRecipient
         _upscaleImageDir = "F:\\Generated\\";
         _conceptName = "";
         _isUpscalingInProgress = false;
+        _enableAutoPost = false;
         UpScaler = new RealEsrGan();
         Watcher = new()
         {
             NotifyFilter = NotifyFilters.FileName,
             Filter = "*.png"
         };
-
+        Twitter = new(
+            Properties.Resources.APIKey,
+            Properties.Resources.APIKeySecret,
+            Properties.Resources.AccessToken,
+            Properties.Resources.AccessTokenSecret);
         App.MainWindow.Closed += DisposeMembers;
     }
 
@@ -96,17 +119,24 @@ public partial class MainViewModel : ObservableRecipient
         ReadYaml(yamlName(imagePath));
 
         // Start watching file generation
-        void endWatchingIfFileIsGenerated(object _, FileSystemEventArgs e)
+        async void onFilesChanged(object _, FileSystemEventArgs e)
         {
-            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !(e.FullPath == savePath));
+            var isGeneratedTarget = e.FullPath == savePath;
+            if (!isGeneratedTarget) return;
+
+            if (EnableAutoPost)
+            {
+                await Twitter.TweetWithMedia(PostText, savePath, Replies.FullParameters);
+            }
+            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !isGeneratedTarget);
 
             Watcher.EnableRaisingEvents = false;
-            Watcher.Created -= endWatchingIfFileIsGenerated;
-            Watcher.Changed -= endWatchingIfFileIsGenerated;
+            Watcher.Created -= onFilesChanged;
+            Watcher.Changed -= onFilesChanged;
         }
         Watcher.Path = saveDir;
-        Watcher.Created += endWatchingIfFileIsGenerated;
-        Watcher.Changed += endWatchingIfFileIsGenerated;
+        Watcher.Created += onFilesChanged;
+        Watcher.Changed += onFilesChanged;
         Watcher.EnableRaisingEvents = true;
 
         // Run upscaler
@@ -143,5 +173,6 @@ public partial class MainViewModel : ObservableRecipient
     {
         UpScaler.Dispose();
         Watcher.Dispose();
+        Twitter.Dispose();
     }
 }
