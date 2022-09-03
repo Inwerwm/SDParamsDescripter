@@ -27,6 +27,8 @@ public partial class MainViewModel : ObservableRecipient
     private bool _doesUseAnimeModel;
     [ObservableProperty]
     private bool _isUpscalingInProgress;
+    [ObservableProperty]
+    private bool _enableAutoPost;
 
     private IDescriptionSeparator Separator { get; }
     private RealEsrGan UpScaler { get; }
@@ -42,6 +44,7 @@ public partial class MainViewModel : ObservableRecipient
         _upscaleImageDir = "F:\\Generated\\";
         _conceptName = "";
         _isUpscalingInProgress = false;
+        _enableAutoPost = true;
         UpScaler = new RealEsrGan();
         Watcher = new()
         {

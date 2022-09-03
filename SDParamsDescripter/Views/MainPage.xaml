@@ -11,6 +11,7 @@
         <StackPanel Grid.Row="1" CanDrag="True">
 
             <Button Content="Read" Command="{x:Bind ViewModel.ReadFileCommand}" Margin="20, 10" HorizontalAlignment="Stretch"/>
+            <ToggleSwitch OnContent="Auto Post to Twitter" OffContent="Only Local" IsOn="{x:Bind ViewModel.EnableAutoPost}" Margin="20, 10" HorizontalAlignment="Center"/>
 
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
                 <Grid Margin="12.5, 5, 12.5, 5">
