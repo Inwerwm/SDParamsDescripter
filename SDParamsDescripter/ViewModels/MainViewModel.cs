@@ -42,9 +42,9 @@ public partial class MainViewModel : ObservableRecipient
     {
         get;
     }
-    private Twitter? Twitter
+    private Twitter Twitter
     {
-        get; set;
+        get;
     }
     public DispatcherQueue? DispatcherQueue
     {
@@ -67,7 +67,11 @@ public partial class MainViewModel : ObservableRecipient
             NotifyFilter = NotifyFilters.FileName,
             Filter = "*.png"
         };
-
+        Twitter = new(
+            Properties.Resources.APIKey,
+            Properties.Resources.APIKeySecret,
+            Properties.Resources.AccessToken,
+            Properties.Resources.AccessTokenSecret);
         App.MainWindow.Closed += DisposeMembers;
     }
 
@@ -120,9 +124,9 @@ public partial class MainViewModel : ObservableRecipient
             var isGeneratedTarget = e.FullPath == savePath;
             if (!isGeneratedTarget) return;
 
-            if (Twitter is not null && EnableAutoPost)
+            if (EnableAutoPost)
             {
-                await Twitter.Post(PostText, savePath, Replies.FullParameters);
+                await Twitter.TweetWithMedia(PostText, savePath, Replies.FullParameters);
             }
             DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !isGeneratedTarget);
 
@@ -169,5 +173,6 @@ public partial class MainViewModel : ObservableRecipient
     {
         UpScaler.Dispose();
         Watcher.Dispose();
+        Twitter.Dispose();
     }
 }
