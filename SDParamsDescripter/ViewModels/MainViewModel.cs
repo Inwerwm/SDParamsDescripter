@@ -33,6 +33,7 @@ public partial class MainViewModel : ObservableRecipient
     private IDescriptionSeparator Separator { get; }
     private RealEsrGan UpScaler { get; }
     private FileSystemWatcher Watcher { get; }
+    private Twitter Twitter { get; }
     public DispatcherQueue? DispatcherQueue { get; set; }
 
     public MainViewModel()
@@ -51,6 +52,8 @@ public partial class MainViewModel : ObservableRecipient
             NotifyFilter = NotifyFilters.FileName,
             Filter = "*.png"
         };
+
+        Twitter = new Twitter(Properties.Resources.APIKey, Properties.Resources.APIKeySecret);
 
         App.MainWindow.Closed += DisposeMembers;
     }
@@ -99,17 +102,24 @@ public partial class MainViewModel : ObservableRecipient
         ReadYaml(yamlName(imagePath));
 
         // Start watching file generation
-        void endWatchingIfFileIsGenerated(object _, FileSystemEventArgs e)
+        async void onFilesChanged(object _, FileSystemEventArgs e)
         {
-            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !(e.FullPath == savePath));
+            var isGeneratedTarget = e.FullPath == savePath;
+            if (!isGeneratedTarget) return;
+
+            if (EnableAutoPost)
+            {
+                await Twitter.Post(PostText, savePath, Replies.FullParameters);
+            }
+            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !isGeneratedTarget);
 
             Watcher.EnableRaisingEvents = false;
-            Watcher.Created -= endWatchingIfFileIsGenerated;
-            Watcher.Changed -= endWatchingIfFileIsGenerated;
+            Watcher.Created -= onFilesChanged;
+            Watcher.Changed -= onFilesChanged;
         }
         Watcher.Path = saveDir;
-        Watcher.Created += endWatchingIfFileIsGenerated;
-        Watcher.Changed += endWatchingIfFileIsGenerated;
+        Watcher.Created += onFilesChanged;
+        Watcher.Changed += onFilesChanged;
         Watcher.EnableRaisingEvents = true;
 
         // Run upscaler
