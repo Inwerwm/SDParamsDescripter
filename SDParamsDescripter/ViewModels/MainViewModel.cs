@@ -132,14 +132,14 @@ public partial class MainViewModel : ObservableRecipient
         // Start watching file generation
         async void onFilesChanged(object _, FileSystemEventArgs e)
         {
-            var isGeneratedTarget = e.FullPath == savePath;
-            if (!isGeneratedTarget) { return; }
+            if (e.FullPath != savePath) { return; }
 
             if (EnableAutoPost)
             {
                 await PostToTwitter(savePath);
             }
-            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !isGeneratedTarget);
+
+            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = false);
 
             Watcher.EnableRaisingEvents = false;
             Watcher.Created -= onFilesChanged;
