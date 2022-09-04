@@ -1,4 +1,5 @@
 ﻿using LinqToTwitter;
+using LinqToTwitter.Common;
 using LinqToTwitter.OAuth;
 
 namespace SDParamsDescripter.Core.Models;
@@ -9,6 +10,12 @@ public class Twitter : IDisposable
     private TwitterContext Context
     {
         get;
+    }
+
+    public static string ExpandExceptionMessage(TwitterQueryException ex)
+    {
+        var errors = string.Join(Environment.NewLine, ex.Errors.Select(e => $"- {e.Message}"));
+        return ex.ReasonPhrase is null ? errors : $"{ex.ReasonPhrase}:{Environment.NewLine}{errors}";
     }
 
     public Twitter(string consumerKey, string consumerSecret, string accessToken, string accessTokenSecret)
@@ -35,7 +42,7 @@ public class Twitter : IDisposable
         await Context.TweetMediaAsync(text, new[] { media.MediaID.ToString() });
     }
 
-    public async Task<byte[]> ReadImage(string path)
+    private async Task<byte[]> ReadImage(string path)
     {
         if (TryReadImage(path, out var image)) return image;
 
@@ -43,7 +50,7 @@ public class Twitter : IDisposable
         return await ReadImage(path);
     }
 
-    public bool TryReadImage(string path, out byte[] image)
+    private bool TryReadImage(string path, out byte[] image)
     {
         try
         {

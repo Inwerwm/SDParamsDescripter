@@ -19,6 +19,7 @@
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
                 <StackPanel Margin="20, 10">
                     <ToggleSwitch OnContent="Auto Post to Twitter" OffContent="Only Local" IsOn="{x:Bind ViewModel.EnableAutoPost, Mode=TwoWay}"/>
+                    <InfoBar Severity="Error" IsOpen="{x:Bind ViewModel.IsOpenTwitterErrorInfo, Mode=TwoWay}" Title="Twitter Error" Message="{x:Bind ViewModel.TwitterErrorMessage, Mode=OneWay}" />
                 </StackPanel>
             </Border>
 

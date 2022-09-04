@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LinqToTwitter.Common;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using SDParamsDescripter.Core.Contracts;
@@ -19,16 +20,23 @@ public partial class MainViewModel : ObservableRecipient
     private ObservableCollection<PromptReply> _prompts;
     [ObservableProperty]
     private string _postText;
+
     [ObservableProperty]
     private string _upscaleImageDir;
     [ObservableProperty]
     private string _conceptName;
+
     [ObservableProperty]
     private bool _doesUseAnimeModel;
     [ObservableProperty]
     private bool _isUpscalingInProgress;
     [ObservableProperty]
     private bool _enableAutoPost;
+
+    [ObservableProperty]
+    private bool _isOpenTwitterErrorInfo;
+    [ObservableProperty]
+    private string _twitterErrorMessage;
 
     private IDescriptionSeparator Separator
     {
@@ -67,11 +75,14 @@ public partial class MainViewModel : ObservableRecipient
             NotifyFilter = NotifyFilters.FileName,
             Filter = "*.png"
         };
+
         Twitter = new(
             Properties.Resources.APIKey,
             Properties.Resources.APIKeySecret,
             Properties.Resources.AccessToken,
             Properties.Resources.AccessTokenSecret);
+        _twitterErrorMessage = "";
+
         App.MainWindow.Closed += DisposeMembers;
     }
 
@@ -126,7 +137,26 @@ public partial class MainViewModel : ObservableRecipient
 
             if (EnableAutoPost)
             {
-                await Twitter.TweetWithMedia(PostText, savePath, Replies.FullParameters);
+                try
+                {
+                    await Twitter.TweetWithMedia(PostText, savePath, Replies.FullParameters);
+                }
+                catch (TwitterQueryException ex)
+                {
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        TwitterErrorMessage = Twitter.ExpandExceptionMessage(ex);
+                        IsOpenTwitterErrorInfo = true;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        TwitterErrorMessage = ex.Message;
+                        IsOpenTwitterErrorInfo = true;
+                    });
+                }
             }
             DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !isGeneratedTarget);
 
