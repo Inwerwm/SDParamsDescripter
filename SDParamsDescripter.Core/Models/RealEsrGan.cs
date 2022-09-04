@@ -1,16 +1,13 @@
 ﻿using System.Diagnostics;
-using SDParamsDescripter.Core.Contracts;
 
 namespace SDParamsDescripter.Core.Models;
-public class RealEsrGan : IShell
+public class RealEsrGan
 {
     private bool disposedValue;
-    private CancellationTokenSource _canceller;
 
     private Process Process { get; }
 
     public StreamWriter StandardInput => Process.StandardInput;
-    public StreamReader StandardOutput => Process.StandardOutput;
 
     public RealEsrGan()
     {
@@ -22,26 +19,11 @@ public class RealEsrGan : IShell
                 Arguments = $"-ExecutionPolicy ByPass -NoExit -Command \"& 'C:\\ProgramData\\Anaconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\Users\\owner\\anaconda3\\envs\\ldo' \"",
                 WorkingDirectory = "D:\\stable-diffusion\\",
                 RedirectStandardInput = true,
-                RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
             }
         };
-
         Process.Start();
-        _canceller = new();
-        StartReadOutput(_canceller.Token);
-    }
-
-    void StartReadOutput(CancellationToken token)
-    {
-        Task.Run(() =>
-        {
-            while (!(token.IsCancellationRequested || (StandardOutput?.EndOfStream ?? true)))
-            {
-                Console.WriteLine(StandardOutput?.ReadLine());
-            }
-        }, token);
     }
 
     public void Run(string filePath, string savePath, bool isAnime)
@@ -55,8 +37,6 @@ public class RealEsrGan : IShell
         {
             if (disposing)
             {
-                _canceller.Cancel();
-                _canceller?.Dispose();
                 Process?.Dispose();
             }
 
