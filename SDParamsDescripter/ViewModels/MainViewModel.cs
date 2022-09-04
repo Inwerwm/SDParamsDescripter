@@ -50,6 +50,7 @@ public partial class MainViewModel : ObservableRecipient
     {
         get;
     }
+
     private Twitter Twitter
     {
         get;
@@ -61,14 +62,21 @@ public partial class MainViewModel : ObservableRecipient
 
     public MainViewModel()
     {
-        Separator = new StableDiffusionWebUIDescriptionSeparator();
         _replies = new("", "", Array.Empty<PromptReply>());
         _prompts = new ObservableCollection<PromptReply>();
         _postText = "#StableDiffusion\r\n#Prompt は ALT にあります。";
+
         _upscaleImageDir = "F:\\Generated\\";
         _conceptName = "";
+
+        _doesUseAnimeModel = false;
         _isUpscalingInProgress = false;
         _enableAutoPost = false;
+
+        _isOpenTwitterErrorInfo = false;
+        _twitterErrorMessage = "";
+
+        Separator = new StableDiffusionWebUIDescriptionSeparator();
         UpScaler = new RealEsrGan();
         Watcher = new()
         {
@@ -81,7 +89,6 @@ public partial class MainViewModel : ObservableRecipient
             Properties.Resources.APIKeySecret,
             Properties.Resources.AccessToken,
             Properties.Resources.AccessTokenSecret);
-        _twitterErrorMessage = "";
 
         App.MainWindow.Closed += DisposeMembers;
     }
