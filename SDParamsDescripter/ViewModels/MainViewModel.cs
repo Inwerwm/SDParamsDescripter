@@ -143,6 +143,7 @@ public partial class MainViewModel : ObservableRecipient
 
             if (EnableAutoPost)
             {
+                IsOpenTwitterErrorInfo = false;
                 await PostToTwitter(savePath);
             }
 
