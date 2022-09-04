@@ -62,40 +62,6 @@
                     <TextBox IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Text="{x:Bind ViewModel.Replies.FullParameters, Mode=OneWay}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1"/>
                 </Grid>
             </Border>
-
-            <!-- ALT に書けばいいので分割リプライ用UIは消しておく
-            <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
-                <StackPanel>
-                    <Grid Margin="12.5, 5, 12.5, 5" RowSpacing="10" ColumnSpacing="3">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="50" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Button Command="{x:Bind ViewModel.CopyTextCommand}" CommandParameter="{x:Bind ViewModel.Replies.Numbers, Mode=OneWay}" HorizontalAlignment="Center" Grid.Column="0">
-                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8c8;" />
-                        </Button>
-                        <TextBox IsReadOnly="True" AcceptsReturn="True" Text="{x:Bind ViewModel.Replies.Numbers, Mode=OneWay}" HorizontalAlignment="Stretch" Grid.Column="1"/>
-                    </Grid>
-                    <ListView ItemsSource="{x:Bind ViewModel.Prompts}" SelectionMode="None" HorizontalAlignment="Stretch">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="model:PromptReply">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="50" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Button Command="{Binding ViewModel.CopyTextCommand, ElementName=MainContainer}" CommandParameter="{x:Bind Contents, Mode=OneWay}" Grid.Column="0">
-                                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8c8;" />
-                                    </Button>
-                                    <TextBox IsReadOnly="True" AcceptsReturn="True" Text="{x:Bind Contents, Mode=OneWay}" Height="50" Margin="0, 5" HorizontalAlignment="Stretch" Grid.Column="1"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </StackPanel>
-            </Border>
-            -->
         </StackPanel>
     </ScrollViewer>
 </Page>
