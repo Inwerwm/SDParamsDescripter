@@ -88,7 +88,7 @@ public partial class MainViewModel : ObservableRecipient
 
     private void ReadFile(IStorageItem? file)
     {
-        if (file is null) return;
+        if (file is null) { return; }
 
         switch (Path.GetExtension(file.Name))
         {
@@ -100,7 +100,7 @@ public partial class MainViewModel : ObservableRecipient
 
     public void ReadYaml(string yamlFilePath)
     {
-        if (!File.Exists(yamlFilePath)) return;
+        if (!File.Exists(yamlFilePath)) { return; }
 
         Replies = Separator.Separate(yamlFilePath);
         Prompts.Clear();
@@ -112,9 +112,9 @@ public partial class MainViewModel : ObservableRecipient
 
     public void UpScale(string imagePath)
     {
-        if (DispatcherQueue is null) return;
-        if (IsUpscalingInProgress) return;
-        if (!File.Exists(imagePath)) return;
+        if (DispatcherQueue is null) { return; }
+        if (IsUpscalingInProgress) { return; }
+        if (!File.Exists(imagePath)) { return; }
 
         // Make path
         var saveDir = Path.Combine(UpscaleImageDir, ConceptName);
@@ -133,7 +133,7 @@ public partial class MainViewModel : ObservableRecipient
         async void onFilesChanged(object _, FileSystemEventArgs e)
         {
             var isGeneratedTarget = e.FullPath == savePath;
-            if (!isGeneratedTarget) return;
+            if (!isGeneratedTarget) { return; }
 
             if (EnableAutoPost)
             {
@@ -157,7 +157,7 @@ public partial class MainViewModel : ObservableRecipient
 
     private async Task PostToTwitter(string imagePath)
     {
-        if (DispatcherQueue is null) return;
+        if (DispatcherQueue is null) { return; }
 
         try
         {
