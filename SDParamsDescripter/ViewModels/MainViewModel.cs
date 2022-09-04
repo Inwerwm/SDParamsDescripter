@@ -62,12 +62,14 @@ public partial class MainViewModel : ObservableRecipient
 
     public MainViewModel()
     {
+        var localSettings = ApplicationData.Current.LocalSettings;
+
         _replies = new("", "", Array.Empty<PromptReply>());
         _prompts = new ObservableCollection<PromptReply>();
-        _postText = "#StableDiffusion\r\n#Prompt は ALT にあります。";
+        _postText = localSettings.Values["postText"] as string ?? "#StableDiffusion\r\n#Prompt は ALT にあります。";
 
-        _upscaleImageDir = "F:\\Generated\\";
-        _conceptName = "";
+        _upscaleImageDir = localSettings.Values["upscaleImageDir"] as string ?? "F:\\Generated\\";
+        _conceptName = localSettings.Values["conceptName"] as string ?? "";
 
         _doesUseAnimeModel = false;
         _isUpscalingInProgress = false;
@@ -218,5 +220,10 @@ public partial class MainViewModel : ObservableRecipient
         UpScaler.Dispose();
         Watcher.Dispose();
         Twitter.Dispose();
+
+        var localSettings = ApplicationData.Current.LocalSettings;
+        localSettings.Values["postText"] = PostText;
+        localSettings.Values["upscaleImageDir"] = UpscaleImageDir;
+        localSettings.Values["conceptName"] = ConceptName;
     }
 }
