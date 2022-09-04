@@ -188,8 +188,7 @@ public partial class MainViewModel : ObservableRecipient
 
     public async void ReadDropedFile(object _, DragEventArgs e)
     {
-        var storageItems = await e.DataView.GetStorageItemsAsync();
-        ReadFile(storageItems.FirstOrDefault());
+        ReadFile((await e.DataView.GetStorageItemsAsync()).FirstOrDefault());
     }
 
     [ICommand]
