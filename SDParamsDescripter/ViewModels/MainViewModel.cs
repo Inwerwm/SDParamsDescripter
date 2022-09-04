@@ -137,26 +137,7 @@ public partial class MainViewModel : ObservableRecipient
 
             if (EnableAutoPost)
             {
-                try
-                {
-                    await Twitter.TweetWithMedia(PostText, savePath, Replies.FullParameters);
-                }
-                catch (TwitterQueryException ex)
-                {
-                    DispatcherQueue.TryEnqueue(() =>
-                    {
-                        TwitterErrorMessage = Twitter.ExpandExceptionMessage(ex);
-                        IsOpenTwitterErrorInfo = true;
-                    });
-                }
-                catch (Exception ex)
-                {
-                    DispatcherQueue.TryEnqueue(() =>
-                    {
-                        TwitterErrorMessage = ex.Message;
-                        IsOpenTwitterErrorInfo = true;
-                    });
-                }
+                await PostToTwitter(savePath);
             }
             DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = !isGeneratedTarget);
 
@@ -172,6 +153,32 @@ public partial class MainViewModel : ObservableRecipient
         // Run upscaler
         IsUpscalingInProgress = true;
         UpScaler.Run(imagePath, savePath, DoesUseAnimeModel);
+    }
+
+    private async Task PostToTwitter(string imagePath)
+    {
+        if (DispatcherQueue is null) return;
+
+        try
+        {
+            await Twitter.TweetWithMedia(PostText, imagePath, Replies.FullParameters);
+        }
+        catch (TwitterQueryException ex)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                TwitterErrorMessage = Twitter.ExpandExceptionMessage(ex);
+                IsOpenTwitterErrorInfo = true;
+            });
+        }
+        catch (Exception ex)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                TwitterErrorMessage = ex.Message;
+                IsOpenTwitterErrorInfo = true;
+            });
+        }
     }
 
     public void AcceptDropFile(object _, DragEventArgs e)
