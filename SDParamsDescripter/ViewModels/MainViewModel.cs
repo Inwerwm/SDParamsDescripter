@@ -66,9 +66,9 @@ public partial class MainViewModel : ObservableRecipient
 
         _replies = new("", "", Array.Empty<PromptReply>());
         _prompts = new ObservableCollection<PromptReply>();
-        _postText = localSettings.Values["postText"] as string ?? "#StableDiffusion\r\n#Prompt は ALT にあります。";
+        _postText = localSettings.Values["postText"] as string ?? "#StableDiffusion\nThe #prompt is in ALT.";
 
-        _upscaleImageDir = localSettings.Values["upscaleImageDir"] as string ?? "F:\\Generated\\";
+        _upscaleImageDir = localSettings.Values["upscaleImageDir"] as string ?? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         _conceptName = localSettings.Values["conceptName"] as string ?? "";
 
         _doesUseAnimeModel = false;
