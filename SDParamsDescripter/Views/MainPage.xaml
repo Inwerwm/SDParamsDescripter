@@ -31,8 +31,8 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Spacing="10" Grid.Column="0">
-                        <TextBox Text="{x:Bind ViewModel.UpscaleImageDir, Mode=TwoWay}"/>
-                        <TextBox Text="{x:Bind ViewModel.ConceptName, Mode=TwoWay}" PlaceholderText="Folder name"/>
+                        <TextBox Text="{x:Bind ViewModel.UpscaleImageDir, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Text="{x:Bind ViewModel.ConceptName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Folder name"/>
                         <ToggleSwitch OnContent="Anime Model" OffContent="NormalModel" IsOn="{x:Bind ViewModel.DoesUseAnimeModel}"/>
                     </StackPanel>
 
@@ -54,7 +54,7 @@
                     <Button Command="{x:Bind ViewModel.CopyTextCommand}" CommandParameter="{x:Bind ViewModel.PostText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" Grid.Column="0">
                         <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8c8;" />
                     </Button>
-                    <TextBox AcceptsReturn="True" TextWrapping="Wrap" Text="{x:Bind ViewModel.PostText, Mode=TwoWay}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Grid.Row="0" Grid.Column="1"/>
+                    <TextBox AcceptsReturn="True" TextWrapping="Wrap" Text="{x:Bind ViewModel.PostText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Grid.Row="0" Grid.Column="1"/>
 
                     <Button Command="{x:Bind ViewModel.CopyTextCommand}" CommandParameter="{x:Bind ViewModel.Replies.FullParameters, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0">
                         <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8c8;" />
