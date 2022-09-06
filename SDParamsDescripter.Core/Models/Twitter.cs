@@ -34,12 +34,43 @@ public class Twitter : IDisposable
         Context = new TwitterContext(auth);
     }
 
-    public async Task TweetWithMedia(string text, string imagePath, string imageAltText)
+    public async Task TweetWithMedia(string text, string imagePath, string imageAltText, bool resizeImageWhenTooLarge)
     {
         var image = await ReadImage(imagePath);
-        var media = await Context.UploadMediaAsync(image, "image/png", "tweet_image");
-        await Context.CreateMediaMetadataAsync(media.MediaID, imageAltText);
-        await Context.TweetMediaAsync(text, new[] { media.MediaID.ToString() });
+        await TweetWithMedia(text, image, imageAltText, resizeImageWhenTooLarge);
+
+    }
+
+    private async Task TweetWithMedia(string text, byte[] image, string imageAltText, bool resizeImageWhenTooLarge)
+    {
+        var doRetry = false;
+
+        try
+        {
+            var media = await Context.UploadMediaAsync(image, "image/png", "tweet_image");
+            await Context.CreateMediaMetadataAsync(media.MediaID, imageAltText);
+            await Context.TweetMediaAsync(text, new[] { media.MediaID.ToString() });
+        }
+        catch (TwitterQueryException ex)
+        {
+            var isLargeImageError = (ex.Errors.Count == 1 && ex.Errors[0].Message == "File size exceeds 5242880 bytes.");
+            if (!(isLargeImageError || resizeImageWhenTooLarge))
+            {
+                throw;
+            }
+
+            doRetry = true;
+        }
+
+        if (doRetry)
+        {
+            await TweetWithMedia(text, Resize(image), imageAltText, resizeImageWhenTooLarge);
+        }
+    }
+
+    private byte[] Resize(byte[] image)
+    {
+        throw new NotImplementedException();
     }
 
     private async Task<byte[]> ReadImage(string path)

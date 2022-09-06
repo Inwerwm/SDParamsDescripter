@@ -174,7 +174,7 @@ public partial class MainViewModel : ObservableRecipient
 
         try
         {
-            await Twitter.TweetWithMedia(PostText, imagePath, Replies.FullParameters);
+            await Twitter.TweetWithMedia(PostText, imagePath, Replies.FullParameters, RetryWhenImageIsTooLarge);
         }
         catch (TwitterQueryException ex)
         {
