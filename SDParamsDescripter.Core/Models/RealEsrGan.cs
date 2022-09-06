@@ -20,7 +20,7 @@ public class RealEsrGan
                 WorkingDirectory = "D:\\stable-diffusion\\",
                 RedirectStandardInput = true,
                 UseShellExecute = false,
-                CreateNoWindow = true,
+                CreateNoWindow = false,
             }
         };
         Process.Start();
