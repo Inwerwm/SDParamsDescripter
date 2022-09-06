@@ -14,7 +14,7 @@ public class Twitter : IDisposable
 
     public static string ExpandExceptionMessage(TwitterQueryException ex)
     {
-        var errors = string.Join(Environment.NewLine, ex.Errors.Select(e => $"- {e.Message}"));
+        var errors = string.Join(Environment.NewLine, ex.Errors.Select(e => $"- {e.Code}: {e.Message}"));
         return ex.ReasonPhrase is null ? errors : $"{ex.ReasonPhrase}:{Environment.NewLine}{errors}";
     }
 
