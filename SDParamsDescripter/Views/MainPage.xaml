@@ -38,7 +38,7 @@
                     <StackPanel Spacing="10" Grid.Column="0">
                         <TextBox Text="{x:Bind ViewModel.UpscaleImageDir, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         <TextBox Text="{x:Bind ViewModel.ConceptName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Folder name"/>
-                        <ToggleSwitch OnContent="Anime Model" OffContent="Normal Model" IsOn="{x:Bind ViewModel.DoesUseAnimeModel}"/>
+                        <ToggleSwitch OnContent="Anime Model" OffContent="Normal Model" IsOn="{x:Bind ViewModel.DoesUseAnimeModel, Mode=TwoWay}"/>
                     </StackPanel>
 
                     <ProgressRing IsActive="{x:Bind ViewModel.IsUpscalingInProgress, Mode=OneWay}" Grid.Column="1"/>
