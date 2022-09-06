@@ -19,7 +19,11 @@
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
                 <StackPanel Margin="20, 10">
                     <TextBlock Text="When an image is read:" />
-                    <ToggleSwitch OnContent="Upscale and post to Twitter" OffContent="Upscale only" IsOn="{x:Bind ViewModel.EnableAutoPost, Mode=TwoWay}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="20">
+                        <ToggleSwitch OnContent="Upscale and post to Twitter" OffContent="Upscale only" IsOn="{x:Bind ViewModel.EnableAutoPost, Mode=TwoWay}"/>
+                        <ToggleSwitch OnContent="Resize and retry" OffContent="Display error" Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=OneWay}" IsOn="{x:Bind ViewModel.RetryWhenImageIsTooLarge}" />
+                        <TextBlock Text="if image size is too large" Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=OneWay}" Margin="-20, 2, 0, 0" VerticalAlignment="Center" />
+                    </StackPanel>
                     <InfoBar Severity="Error" IsOpen="{x:Bind ViewModel.IsOpenTwitterErrorInfo, Mode=TwoWay}" Title="Twitter Error" Message="{x:Bind ViewModel.TwitterErrorMessage, Mode=OneWay}" />
                 </StackPanel>
             </Border>

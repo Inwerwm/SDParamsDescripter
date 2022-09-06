@@ -32,6 +32,8 @@ public partial class MainViewModel : ObservableRecipient
     private bool _isUpscalingInProgress;
     [ObservableProperty]
     private bool _enableAutoPost;
+    [ObservableProperty]
+    private bool _retryWhenImageIsTooLarge;
 
     [ObservableProperty]
     private bool _isOpenTwitterErrorInfo;
@@ -74,6 +76,7 @@ public partial class MainViewModel : ObservableRecipient
         _doesUseAnimeModel = false;
         _isUpscalingInProgress = false;
         _enableAutoPost = false;
+        _retryWhenImageIsTooLarge = true;
 
         _isOpenTwitterErrorInfo = false;
         _twitterErrorMessage = "";
