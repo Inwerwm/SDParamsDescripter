@@ -76,7 +76,7 @@ public class Twitter : IDisposable
     private byte[] Resize(byte[] imageBytes, float scale)
     {
         using var image = Image.Load(imageBytes);
-        image.Mutate(img => img.Resize((int)Math.Round(image.Width * scale), (int)Math.Round(image.Height * scale)));
+        image.Mutate(img => img.Resize((int)Math.Round(image.Width * scale), (int)Math.Round(image.Height * scale), KnownResamplers.Lanczos3));
 
         using var memory = new MemoryStream();
         image.SaveAsPng(memory);
