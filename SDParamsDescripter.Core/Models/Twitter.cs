@@ -1,6 +1,8 @@
 ﻿using LinqToTwitter;
 using LinqToTwitter.Common;
 using LinqToTwitter.OAuth;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace SDParamsDescripter.Core.Models;
 public class Twitter : IDisposable
@@ -54,23 +56,31 @@ public class Twitter : IDisposable
         catch (TwitterQueryException ex)
         {
             var isLargeImageError = (ex.Errors.Count == 1 && ex.Errors[0].Message == "File size exceeds 5242880 bytes.");
-            if (!(isLargeImageError || resizeImageWhenTooLarge))
+
+            if (isLargeImageError && resizeImageWhenTooLarge)
+            {
+                doRetry = true;
+            }
+            else
             {
                 throw;
             }
-
-            doRetry = true;
         }
 
         if (doRetry)
         {
-            await TweetWithMedia(text, Resize(image), imageAltText, resizeImageWhenTooLarge);
+            await TweetWithMedia(text, Resize(image, 0.9f), imageAltText, resizeImageWhenTooLarge);
         }
     }
 
-    private byte[] Resize(byte[] image)
+    private byte[] Resize(byte[] imageBytes, float scale)
     {
-        throw new NotImplementedException();
+        using var image = Image.Load(imageBytes);
+        image.Mutate(img => img.Resize((int)Math.Round(image.Width * scale), (int)Math.Round(image.Height * scale)));
+
+        using var memory = new MemoryStream();
+        image.SaveAsPng(memory);
+        return memory.ToArray();
     }
 
     private async Task<byte[]> ReadImage(string path)
