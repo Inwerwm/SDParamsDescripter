@@ -17,7 +17,7 @@ public class StableDiffusionWebUIDescriptionSeparator : IDescriptionSeparator
             DDIM Steps: {parameters.DdimSteps}
             Size: {parameters.Width} × {parameters.Height}
             Seed: {parameters.Seed}
-            Sampler Name: {parameters.SamplerName}
+            Sampler: {parameters.SamplerName}
             """;
         return new(
             $"{numbers}\n\nPrompt:\n{parameters.Prompt}".Replace("\r\n", "\n"),
