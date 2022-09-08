@@ -16,7 +16,7 @@ public class RealEsrGan
             StartInfo = new ProcessStartInfo
             {
                 FileName = "C:\\Users\\owner\\AppData\\Local\\Microsoft\\WindowsApps\\Microsoft.PowerShell_8wekyb3d8bbwe\\pwsh.exe",
-                Arguments = $"-ExecutionPolicy ByPass -NoExit -Command \"& 'C:\\ProgramData\\Anaconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\Users\\owner\\anaconda3\\envs\\ldm' \"",
+                Arguments = $"-ExecutionPolicy ByPass -NoExit -Command \"& 'C:\\ProgramData\\Anaconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\Users\\owner\\.conda\\envs\\ldm' \"",
                 WorkingDirectory = "D:\\stable-diffusion\\",
                 RedirectStandardInput = true,
                 UseShellExecute = false,
