@@ -14,6 +14,8 @@ public class RealEsrGan : IDisposable
         get;
     }
 
+    public static string GetModelName(bool isAnime) => (isAnime ? "RealESRGAN_x4plus_anime_6B" : "RealESRGAN_x4plus");
+
     public RealEsrGan()
     {
         Process = new Process
@@ -80,7 +82,7 @@ public class RealEsrGan : IDisposable
 
     public void Run(string filePath, string savePath, bool isAnime)
     {
-        StandardInput.WriteLine($"python scripts/realesrgan_only.py --file-path {filePath} --save-path {savePath} --realesrgan-model {(isAnime ? "RealESRGAN_x4plus_anime_6B" : "RealESRGAN_x4plus")}");
+        StandardInput.WriteLine($"python scripts/realesrgan_only.py --file-path {filePath} --save-path {savePath} --realesrgan-model {GetModelName(isAnime)}");
     }
 
     protected virtual void Dispose(bool disposing)
