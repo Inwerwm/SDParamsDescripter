@@ -143,6 +143,7 @@ public partial class MainViewModel : ObservableRecipient
         File.Copy(yamlName(imagePath), yamlName(savePath), true);
         ReadYaml(yamlName(imagePath));
 
+        // Queueing
         ImageTaskQueue.Add(new(
             imagePath,
             new(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), savePath, Replies.FullParameters, RetryWhenImageIsTooLarge),
@@ -219,7 +220,7 @@ public partial class MainViewModel : ObservableRecipient
         var dropedItems = await e.DataView.GetStorageItemsAsync();
         if (dropedItems.Count > 1)
         {
-            // 複数のファイルが投げ込まれたら png ファイルだけ処理する
+            // If multiple files are dropped, only the png file is processed
             foreach (var png in dropedItems.Where(file => Path.GetExtension(file.Name) == ".png"))
             {
                 ReadFile(png);
