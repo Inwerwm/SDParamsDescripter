@@ -26,6 +26,13 @@ public partial class MainViewModel : ObservableRecipient
     private string _upscaleImageDir;
     [ObservableProperty]
     private string _conceptName;
+    [ObservableProperty]
+    private ObservableCollection<ImageTask> _imageTaskQueue;
+    private bool IsRunningQueueLoop
+    {
+        get;
+        set;
+    }
 
     [ObservableProperty]
     private bool _doesUseAnimeModel;
@@ -73,6 +80,8 @@ public partial class MainViewModel : ObservableRecipient
 
         _upscaleImageDir = localSettings.Values["upscaleImageDir"] as string ?? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         _conceptName = localSettings.Values["conceptName"] as string ?? "";
+        _imageTaskQueue = new();
+        IsRunningQueueLoop = false;
 
         _doesUseAnimeModel = false;
         _isUpscalingInProgress = false;
@@ -102,7 +111,7 @@ public partial class MainViewModel : ObservableRecipient
         switch (Path.GetExtension(file.Name))
         {
             case ".yaml": ReadYaml(file.Path); break;
-            case ".png": UpScaleAsync(file.Path); break;
+            case ".png": AddImageTask(file.Path); break;
             default: break;
         }
     }
@@ -119,12 +128,8 @@ public partial class MainViewModel : ObservableRecipient
         }
     }
 
-    public async Task UpScaleAsync(string imagePath)
+    private void AddImageTask(string imagePath)
     {
-        if (DispatcherQueue is null) { return; }
-        if (IsUpscalingInProgress) { return; }
-        if (!File.Exists(imagePath)) { return; }
-
         // Make path
         var saveDir = Path.Combine(UpscaleImageDir, ConceptName);
         var savePath = Path.Combine(saveDir, Path.GetFileName(imagePath));
@@ -138,26 +143,52 @@ public partial class MainViewModel : ObservableRecipient
         File.Copy(yamlName(imagePath), yamlName(savePath), true);
         ReadYaml(yamlName(imagePath));
 
-        // Run upscaler
-        IsUpscalingInProgress = true;
+        ImageTaskQueue.Add(new(
+            imagePath,
+            new(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), savePath, Replies.FullParameters, RetryWhenImageIsTooLarge),
+            EnableAutoPost,
+            DoesUseAnimeModel));
 
-        await UpScaler.RunAsync(imagePath, savePath, DoesUseAnimeModel, Cancellation.Token);
-        if (EnableAutoPost)
-        {
-            IsOpenTwitterErrorInfo = false;
-            await PostToTwitter(savePath);
-        }
-
-        IsUpscalingInProgress = false;
+        RunAllImageTasks();
     }
 
-    private async Task PostToTwitter(string imagePath)
+    private async Task RunAllImageTasks()
+    {
+        if (IsRunningQueueLoop) { return; }
+        IsRunningQueueLoop = true;
+
+        while (ImageTaskQueue.Any())
+        {
+            var current = ImageTaskQueue.FirstOrDefault();
+            if (current is null)
+            {
+                TwitterErrorMessage = "Could not take element of queue.";
+                IsOpenTwitterErrorInfo = true;
+                break;
+            }
+
+            current.IsProgress = true;
+            await UpScaler.RunAsync(current.ImagePath, current.SavePath, current.DoesAnimeModel, Cancellation.Token);
+
+            if (current.EnablePost)
+            {
+                IsOpenTwitterErrorInfo = false;
+                await PostToTwitter(current.Tweet);
+            }
+
+            ImageTaskQueue.Remove(current);
+        }
+
+        IsRunningQueueLoop = false;
+    }
+
+    private async Task PostToTwitter(Tweet tweet)
     {
         if (DispatcherQueue is null) { return; }
 
         try
         {
-            await Twitter.TweetWithMedia(new(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), imagePath, Replies.FullParameters, RetryWhenImageIsTooLarge));
+            await Twitter.TweetWithMedia(tweet);
         }
         catch (TwitterQueryException ex)
         {
@@ -184,7 +215,20 @@ public partial class MainViewModel : ObservableRecipient
 
     public async void ReadDropedFile(object _, DragEventArgs e)
     {
-        ReadFile((await e.DataView.GetStorageItemsAsync()).FirstOrDefault());
+
+        var dropedItems = await e.DataView.GetStorageItemsAsync();
+        if (dropedItems.Count > 1)
+        {
+            // 複数のファイルが投げ込まれたら png ファイルだけ処理する
+            foreach (var png in dropedItems.Where(file => Path.GetExtension(file.Name) == ".png"))
+            {
+                ReadFile(png);
+            }
+        }
+        else
+        {
+            ReadFile(dropedItems.FirstOrDefault());
+        }
     }
 
     [ICommand]
