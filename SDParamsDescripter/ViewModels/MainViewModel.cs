@@ -49,7 +49,7 @@ public partial class MainViewModel : ObservableRecipient
     {
         get;
     }
-    private FileSystemWatcher Watcher
+    private CancellationTokenSource Cancellation
     {
         get;
     }
@@ -84,11 +84,7 @@ public partial class MainViewModel : ObservableRecipient
 
         Separator = new StableDiffusionWebUIDescriptionSeparator();
         UpScaler = new RealEsrGan();
-        Watcher = new()
-        {
-            NotifyFilter = NotifyFilters.FileName,
-            Filter = "*.png"
-        };
+        Cancellation = new();
 
         Twitter = new(
             Properties.Resources.APIKey,
@@ -106,7 +102,7 @@ public partial class MainViewModel : ObservableRecipient
         switch (Path.GetExtension(file.Name))
         {
             case ".yaml": ReadYaml(file.Path); break;
-            case ".png": UpScale(file.Path); break;
+            case ".png": UpScaleAsync(file.Path); break;
             default: break;
         }
     }
@@ -123,7 +119,7 @@ public partial class MainViewModel : ObservableRecipient
         }
     }
 
-    public void UpScale(string imagePath)
+    public async Task UpScaleAsync(string imagePath)
     {
         if (DispatcherQueue is null) { return; }
         if (IsUpscalingInProgress) { return; }
@@ -142,31 +138,17 @@ public partial class MainViewModel : ObservableRecipient
         File.Copy(yamlName(imagePath), yamlName(savePath), true);
         ReadYaml(yamlName(imagePath));
 
-        // Start watching file generation
-        async void onFilesChanged(object _, FileSystemEventArgs e)
-        {
-            if (e.FullPath != savePath) { return; }
-
-            if (EnableAutoPost)
-            {
-                IsOpenTwitterErrorInfo = false;
-                await PostToTwitter(savePath);
-            }
-
-            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = false);
-
-            Watcher.EnableRaisingEvents = false;
-            Watcher.Created -= onFilesChanged;
-            Watcher.Changed -= onFilesChanged;
-        }
-        Watcher.Path = saveDir;
-        Watcher.Created += onFilesChanged;
-        Watcher.Changed += onFilesChanged;
-        Watcher.EnableRaisingEvents = true;
-
         // Run upscaler
         IsUpscalingInProgress = true;
-        UpScaler.Run(imagePath, savePath, DoesUseAnimeModel);
+
+        await UpScaler.RunAsync(imagePath, savePath, DoesUseAnimeModel, Cancellation.Token);
+        if (EnableAutoPost)
+        {
+            IsOpenTwitterErrorInfo = false;
+            await PostToTwitter(savePath);
+        }
+
+        IsUpscalingInProgress = false;
     }
 
     private async Task PostToTwitter(string imagePath)
@@ -221,8 +203,9 @@ public partial class MainViewModel : ObservableRecipient
 
     public void DisposeMembers(object sender, WindowEventArgs e)
     {
+        Cancellation.Cancel();
+        Cancellation.Dispose();
         UpScaler.Dispose();
-        Watcher.Dispose();
         Twitter.Dispose();
 
         var localSettings = ApplicationData.Current.LocalSettings;
