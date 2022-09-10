@@ -6,6 +6,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using SDParamsDescripter.Core.Contracts;
 using SDParamsDescripter.Core.Models;
+using SDParamsDescripter.Core.Twitter;
 using SDParamsDescripter.Helpers;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -53,7 +54,7 @@ public partial class MainViewModel : ObservableRecipient
         get;
     }
 
-    private Twitter Twitter
+    private TwitterAccess Twitter
     {
         get;
     }
@@ -174,13 +175,13 @@ public partial class MainViewModel : ObservableRecipient
 
         try
         {
-            await Twitter.TweetWithMedia(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), imagePath, Replies.FullParameters, RetryWhenImageIsTooLarge);
+            await Twitter.TweetWithMedia(new(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), imagePath, Replies.FullParameters, RetryWhenImageIsTooLarge));
         }
         catch (TwitterQueryException ex)
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                TwitterErrorMessage = Twitter.ExpandExceptionMessage(ex);
+                TwitterErrorMessage = TwitterAccess.ExpandExceptionMessage(ex);
                 IsOpenTwitterErrorInfo = true;
             });
         }
