@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:conv="using:CommunityToolkit.WinUI.UI.Converters"
+    xmlns:vm="using:SDParamsDescripter.ViewModels"
     mc:Ignorable="d"
     x:Name="MainContainer" >
 
@@ -25,6 +26,26 @@
                         <TextBlock Text="if image size is too large" Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=OneWay}" Margin="-20, 2, 0, 0" VerticalAlignment="Center" />
                     </StackPanel>
                     <InfoBar Severity="Error" IsOpen="{x:Bind ViewModel.IsOpenTwitterErrorInfo, Mode=TwoWay}" Title="Twitter Error" Message="{x:Bind ViewModel.TwitterErrorMessage, Mode=OneWay}" />
+                    <ListView ItemsSource="{x:Bind ViewModel.ImageTaskQueue}" SelectionMode="None" HorizontalAlignment="Stretch">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ImageTask">
+                                <Grid ColumnSpacing="20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="256" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition x:Name="ProgressCol" Width="50" />
+                                        <ColumnDefinition x:Name="ImageCol" Width="256" />
+                                        <ColumnDefinition x:Name="SaveDirCol" Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ProgressRing IsActive="{x:Bind IsProgress, Mode=OneWay}" VerticalAlignment="Center" Grid.Column="0" />
+                                    <Image Source="{x:Bind ImagePath}" Stretch="Uniform" Width="256" Height="256" Grid.Column="1" />
+                                    <TextBlock Text="{x:Bind Description}" VerticalAlignment="Center" Grid.Column="2" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </StackPanel>
             </Border>
 

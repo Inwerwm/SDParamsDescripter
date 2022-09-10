@@ -4,8 +4,8 @@ using LinqToTwitter.OAuth;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
-namespace SDParamsDescripter.Core.Models;
-public class Twitter : IDisposable
+namespace SDParamsDescripter.Core.Twitter;
+public class TwitterAccess : IDisposable
 {
     private bool disposedValue;
 
@@ -20,7 +20,7 @@ public class Twitter : IDisposable
         return ex.ReasonPhrase is null ? errors : $"{ex.ReasonPhrase}:{Environment.NewLine}{errors}";
     }
 
-    public Twitter(string consumerKey, string consumerSecret, string accessToken, string accessTokenSecret)
+    public TwitterAccess(string consumerKey, string consumerSecret, string accessToken, string accessTokenSecret)
     {
         var auth = new SingleUserAuthorizer
         {
@@ -36,11 +36,10 @@ public class Twitter : IDisposable
         Context = new TwitterContext(auth);
     }
 
-    public async Task TweetWithMedia(string text, string imagePath, string imageAltText, bool resizeImageWhenTooLarge)
+    public async Task TweetWithMedia(Tweet tweet)
     {
-        var image = await ReadImage(imagePath);
-        await TweetWithMedia(text, image, imageAltText, resizeImageWhenTooLarge);
-
+        var image = await ReadImage(tweet.ImagePath);
+        await TweetWithMedia(tweet.Text, image, tweet.ImageAltText, tweet.ResizeImageWhenTooLarge);
     }
 
     private async Task TweetWithMedia(string text, byte[] image, string imageAltText, bool resizeImageWhenTooLarge)
@@ -55,7 +54,7 @@ public class Twitter : IDisposable
         }
         catch (TwitterQueryException ex)
         {
-            var isLargeImageError = (ex.Errors.Count == 1 && ex.Errors[0].Message == "File size exceeds 5242880 bytes.");
+            var isLargeImageError = ex.Errors.Count == 1 && ex.Errors[0].Message == "File size exceeds 5242880 bytes.";
 
             if (isLargeImageError && resizeImageWhenTooLarge)
             {
@@ -98,7 +97,7 @@ public class Twitter : IDisposable
             image = File.ReadAllBytes(path);
             return true;
         }
-        catch(IOException)
+        catch (IOException)
         {
             image = null;
             return false;

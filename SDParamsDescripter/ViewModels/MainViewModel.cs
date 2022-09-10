@@ -6,6 +6,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using SDParamsDescripter.Core.Contracts;
 using SDParamsDescripter.Core.Models;
+using SDParamsDescripter.Core.Twitter;
 using SDParamsDescripter.Helpers;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -25,6 +26,13 @@ public partial class MainViewModel : ObservableRecipient
     private string _upscaleImageDir;
     [ObservableProperty]
     private string _conceptName;
+    [ObservableProperty]
+    private ObservableCollection<ImageTask> _imageTaskQueue;
+    private bool IsRunningQueueLoop
+    {
+        get;
+        set;
+    }
 
     [ObservableProperty]
     private bool _doesUseAnimeModel;
@@ -48,12 +56,12 @@ public partial class MainViewModel : ObservableRecipient
     {
         get;
     }
-    private FileSystemWatcher Watcher
+    private CancellationTokenSource Cancellation
     {
         get;
     }
 
-    private Twitter Twitter
+    private TwitterAccess Twitter
     {
         get;
     }
@@ -72,6 +80,8 @@ public partial class MainViewModel : ObservableRecipient
 
         _upscaleImageDir = localSettings.Values["upscaleImageDir"] as string ?? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         _conceptName = localSettings.Values["conceptName"] as string ?? "";
+        _imageTaskQueue = new();
+        IsRunningQueueLoop = false;
 
         _doesUseAnimeModel = false;
         _isUpscalingInProgress = false;
@@ -83,11 +93,7 @@ public partial class MainViewModel : ObservableRecipient
 
         Separator = new StableDiffusionWebUIDescriptionSeparator();
         UpScaler = new RealEsrGan();
-        Watcher = new()
-        {
-            NotifyFilter = NotifyFilters.FileName,
-            Filter = "*.png"
-        };
+        Cancellation = new();
 
         Twitter = new(
             Properties.Resources.APIKey,
@@ -105,7 +111,7 @@ public partial class MainViewModel : ObservableRecipient
         switch (Path.GetExtension(file.Name))
         {
             case ".yaml": ReadYaml(file.Path); break;
-            case ".png": UpScale(file.Path); break;
+            case ".png": AddImageTask(file.Path); break;
             default: break;
         }
     }
@@ -122,12 +128,8 @@ public partial class MainViewModel : ObservableRecipient
         }
     }
 
-    public void UpScale(string imagePath)
+    private void AddImageTask(string imagePath)
     {
-        if (DispatcherQueue is null) { return; }
-        if (IsUpscalingInProgress) { return; }
-        if (!File.Exists(imagePath)) { return; }
-
         // Make path
         var saveDir = Path.Combine(UpscaleImageDir, ConceptName);
         var savePath = Path.Combine(saveDir, Path.GetFileName(imagePath));
@@ -141,46 +143,58 @@ public partial class MainViewModel : ObservableRecipient
         File.Copy(yamlName(imagePath), yamlName(savePath), true);
         ReadYaml(yamlName(imagePath));
 
-        // Start watching file generation
-        async void onFilesChanged(object _, FileSystemEventArgs e)
-        {
-            if (e.FullPath != savePath) { return; }
+        ImageTaskQueue.Add(new(
+            imagePath,
+            new(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), savePath, Replies.FullParameters, RetryWhenImageIsTooLarge),
+            EnableAutoPost,
+            DoesUseAnimeModel));
 
-            if (EnableAutoPost)
-            {
-                IsOpenTwitterErrorInfo = false;
-                await PostToTwitter(savePath);
-            }
-
-            DispatcherQueue.TryEnqueue(() => IsUpscalingInProgress = false);
-
-            Watcher.EnableRaisingEvents = false;
-            Watcher.Created -= onFilesChanged;
-            Watcher.Changed -= onFilesChanged;
-        }
-        Watcher.Path = saveDir;
-        Watcher.Created += onFilesChanged;
-        Watcher.Changed += onFilesChanged;
-        Watcher.EnableRaisingEvents = true;
-
-        // Run upscaler
-        IsUpscalingInProgress = true;
-        UpScaler.Run(imagePath, savePath, DoesUseAnimeModel);
+        RunAllImageTasks();
     }
 
-    private async Task PostToTwitter(string imagePath)
+    private async Task RunAllImageTasks()
+    {
+        if (IsRunningQueueLoop) { return; }
+        IsRunningQueueLoop = true;
+
+        while (ImageTaskQueue.Any())
+        {
+            var current = ImageTaskQueue.FirstOrDefault();
+            if (current is null)
+            {
+                TwitterErrorMessage = "Could not take element of queue.";
+                IsOpenTwitterErrorInfo = true;
+                break;
+            }
+
+            current.IsProgress = true;
+            await UpScaler.RunAsync(current.ImagePath, current.SavePath, current.DoesAnimeModel, Cancellation.Token);
+
+            if (current.EnablePost)
+            {
+                IsOpenTwitterErrorInfo = false;
+                await PostToTwitter(current.Tweet);
+            }
+
+            ImageTaskQueue.Remove(current);
+        }
+
+        IsRunningQueueLoop = false;
+    }
+
+    private async Task PostToTwitter(Tweet tweet)
     {
         if (DispatcherQueue is null) { return; }
 
         try
         {
-            await Twitter.TweetWithMedia(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), imagePath, Replies.FullParameters, RetryWhenImageIsTooLarge);
+            await Twitter.TweetWithMedia(tweet);
         }
         catch (TwitterQueryException ex)
         {
             DispatcherQueue.TryEnqueue(() =>
             {
-                TwitterErrorMessage = Twitter.ExpandExceptionMessage(ex);
+                TwitterErrorMessage = TwitterAccess.ExpandExceptionMessage(ex);
                 IsOpenTwitterErrorInfo = true;
             });
         }
@@ -201,7 +215,20 @@ public partial class MainViewModel : ObservableRecipient
 
     public async void ReadDropedFile(object _, DragEventArgs e)
     {
-        ReadFile((await e.DataView.GetStorageItemsAsync()).FirstOrDefault());
+
+        var dropedItems = await e.DataView.GetStorageItemsAsync();
+        if (dropedItems.Count > 1)
+        {
+            // 複数のファイルが投げ込まれたら png ファイルだけ処理する
+            foreach (var png in dropedItems.Where(file => Path.GetExtension(file.Name) == ".png"))
+            {
+                ReadFile(png);
+            }
+        }
+        else
+        {
+            ReadFile(dropedItems.FirstOrDefault());
+        }
     }
 
     [ICommand]
@@ -220,8 +247,9 @@ public partial class MainViewModel : ObservableRecipient
 
     public void DisposeMembers(object sender, WindowEventArgs e)
     {
+        Cancellation.Cancel();
+        Cancellation.Dispose();
         UpScaler.Dispose();
-        Watcher.Dispose();
         Twitter.Dispose();
 
         var localSettings = ApplicationData.Current.LocalSettings;
