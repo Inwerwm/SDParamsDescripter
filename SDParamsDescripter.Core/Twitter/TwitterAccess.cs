@@ -49,8 +49,8 @@ public class TwitterAccess : IDisposable
         try
         {
             var media = await Context.UploadMediaAsync(image, "image/png", "tweet_image");
-            await Context.CreateMediaMetadataAsync(media.MediaID, imageAltText);
-            await Context.TweetMediaAsync(text, new[] { media.MediaID.ToString() });
+            await Context.CreateMediaMetadataAsync(media.MediaID, imageAltText.Replace("\r\n", "\n").Replace("\r", "\n"));
+            await Context.TweetMediaAsync(text.Replace("\r\n", "\n").Replace("\r", "\n"), new[] { media.MediaID.ToString() });
         }
         catch (TwitterQueryException ex)
         {

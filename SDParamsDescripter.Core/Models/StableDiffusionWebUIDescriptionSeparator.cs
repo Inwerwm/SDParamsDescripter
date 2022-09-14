@@ -19,8 +19,12 @@ public class StableDiffusionWebUIDescriptionSeparator : IDescriptionSeparator
             Seed: {parameters.Seed}
             Sampler: {parameters.SamplerName}
             """;
-        return new(
-            $"{numbers}\n\nPrompt:\n{parameters.Prompt}".Replace("\r\n", "\n"),
+        return new($"""
+            {numbers}
+            
+            Prompt:
+            {parameters.Prompt}
+            """,
             numbers,
             new PromptSplitter().Split(parameters.Prompt).Select(p => new PromptReply(p)).ToArray());
     }
