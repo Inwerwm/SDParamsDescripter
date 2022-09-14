@@ -157,7 +157,8 @@ public partial class MainViewModel : ObservableRecipient
     {
         if (IsRunningQueueLoop) { return; }
         IsRunningQueueLoop = true;
-
+        try
+        {
         while (ImageTaskQueue.Any())
         {
             var current = ImageTaskQueue.FirstOrDefault();
@@ -180,7 +181,11 @@ public partial class MainViewModel : ObservableRecipient
             ImageTaskQueue.Remove(current);
         }
 
+        }
+        finally
+        {
         IsRunningQueueLoop = false;
+    }
     }
 
     private async Task PostToTwitter(Tweet tweet)
