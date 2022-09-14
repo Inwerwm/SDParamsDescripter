@@ -71,21 +71,24 @@
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <Button Command="{x:Bind ViewModel.CopyTextCommand}" CommandParameter="{x:Bind ViewModel.PostText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" Grid.Column="0">
-                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8c8;" />
-                    </Button>
-                    <TextBox AcceptsReturn="True" TextWrapping="Wrap" Text="{x:Bind ViewModel.PostText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Grid.Row="0" Grid.Column="1"/>
+                    <ToggleSwitch OnContent="From Yaml" OffContent="From Chunk" IsOn="{x:Bind ViewModel.IsFromYaml}" Grid.Row="0" Grid.Column="1" />
 
-                    <Button Command="{x:Bind ViewModel.CopyTextCommand}" CommandParameter="{x:Bind ViewModel.Replies.FullParameters, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0">
+                    <Button Command="{x:Bind ViewModel.CopyTextCommand}" CommandParameter="{x:Bind ViewModel.PostText, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0">
                         <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8c8;" />
                     </Button>
-                    <TextBox IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Text="{x:Bind ViewModel.Replies.FullParameters, Mode=OneWay}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1"/>
+                    <TextBox AcceptsReturn="True" TextWrapping="Wrap" Text="{x:Bind ViewModel.PostText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1"/>
+
+                    <Button Command="{x:Bind ViewModel.CopyTextCommand}" CommandParameter="{x:Bind ViewModel.Replies.FullParameters, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="2" Grid.Column="0">
+                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8c8;" />
+                    </Button>
+                    <TextBox IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Text="{x:Bind ViewModel.Replies.FullParameters, Mode=OneWay}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1"/>
                 </Grid>
             </Border>
         </StackPanel>

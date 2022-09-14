@@ -21,6 +21,8 @@ public partial class MainViewModel : ObservableRecipient
     private ObservableCollection<PromptReply> _prompts;
     [ObservableProperty]
     private string _postText;
+    [ObservableProperty]
+    private bool _isFromYaml;
 
     [ObservableProperty]
     private string _upscaleImageDir;
@@ -138,10 +140,13 @@ public partial class MainViewModel : ObservableRecipient
             Directory.CreateDirectory(saveDir);
         }
 
-        // Copy and read same name yaml file
-        static string yamlName(string path) => Path.Combine(Path.GetDirectoryName(path) ?? "", Path.GetFileNameWithoutExtension(path) + ".yaml");
-        File.Copy(yamlName(imagePath), yamlName(savePath), true);
-        ReadYaml(yamlName(imagePath));
+        if (IsFromYaml)
+        {
+            // Copy and read same name yaml file
+            static string yamlName(string path) => Path.Combine(Path.GetDirectoryName(path) ?? "", Path.GetFileNameWithoutExtension(path) + ".yaml");
+            File.Copy(yamlName(imagePath), yamlName(savePath), true);
+            ReadYaml(yamlName(imagePath));
+        }
 
         // Queueing
         ImageTaskQueue.Add(new(
@@ -159,33 +164,33 @@ public partial class MainViewModel : ObservableRecipient
         IsRunningQueueLoop = true;
         try
         {
-        while (ImageTaskQueue.Any())
-        {
-            var current = ImageTaskQueue.FirstOrDefault();
-            if (current is null)
+            while (ImageTaskQueue.Any())
             {
-                TwitterErrorMessage = "Could not take element of queue.";
-                IsOpenTwitterErrorInfo = true;
-                break;
+                var current = ImageTaskQueue.FirstOrDefault();
+                if (current is null)
+                {
+                    TwitterErrorMessage = "Could not take element of queue.";
+                    IsOpenTwitterErrorInfo = true;
+                    break;
+                }
+
+                current.IsProgress = true;
+                await UpScaler.RunAsync(current.ImagePath, current.SavePath, current.DoesAnimeModel, Cancellation.Token);
+
+                if (current.EnablePost)
+                {
+                    IsOpenTwitterErrorInfo = false;
+                    await PostToTwitter(current.Tweet);
+                }
+
+                ImageTaskQueue.Remove(current);
             }
-
-            current.IsProgress = true;
-            await UpScaler.RunAsync(current.ImagePath, current.SavePath, current.DoesAnimeModel, Cancellation.Token);
-
-            if (current.EnablePost)
-            {
-                IsOpenTwitterErrorInfo = false;
-                await PostToTwitter(current.Tweet);
-            }
-
-            ImageTaskQueue.Remove(current);
-        }
 
         }
         finally
         {
-        IsRunningQueueLoop = false;
-    }
+            IsRunningQueueLoop = false;
+        }
     }
 
     private async Task PostToTwitter(Tweet tweet)
