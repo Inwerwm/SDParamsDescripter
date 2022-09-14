@@ -20,10 +20,16 @@
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
                 <StackPanel Margin="20, 10">
                     <TextBlock Text="When an image is read:" />
-                    <StackPanel Orientation="Horizontal" Spacing="20">
-                        <ToggleSwitch OnContent="Upscale and post to Twitter" OffContent="Upscale only" IsOn="{x:Bind ViewModel.EnableAutoPost, Mode=TwoWay}"/>
-                        <ToggleSwitch OnContent="Resize and retry" OffContent="Display error" Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=OneWay}" IsOn="{x:Bind ViewModel.RetryWhenImageIsTooLarge}" />
-                        <TextBlock Text="if image size is too large" Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=OneWay}" Margin="-20, 2, 0, 0" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="80">
+                        <RadioButtons Margin="0,0,0,4.5">
+                            <RadioButton Content="Read parameters" IsChecked="{x:Bind ViewModel.EnableReadParams, Mode=TwoWay}" />
+                            <RadioButton Content="Upscale only" IsChecked="{x:Bind ViewModel.EnableUpscale, Mode=TwoWay}" />
+                            <RadioButton Content="Upscale and post to Twitter" IsChecked="{x:Bind ViewModel.EnableAutoPost, Mode=TwoWay}" />
+                        </RadioButtons>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Spacing="20">
+                            <ToggleSwitch OnContent="Resize and retry" OffContent="Display error" Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=OneWay}" IsOn="{x:Bind ViewModel.RetryWhenImageIsTooLarge}" />
+                            <TextBlock Text="if image size is too large" Visibility="{x:Bind ViewModel.EnableAutoPost, Converter={StaticResource boolToVisibility}, Mode=OneWay}" Margin="-20, 2, 0, 0" VerticalAlignment="Center" />
+                        </StackPanel>
                     </StackPanel>
                     <InfoBar Severity="Error" IsOpen="{x:Bind ViewModel.IsOpenTwitterErrorInfo, Mode=TwoWay}" Title="Twitter Error" Message="{x:Bind ViewModel.TwitterErrorMessage, Mode=OneWay}" />
                     <ListView ItemsSource="{x:Bind ViewModel.ImageTaskQueue}" SelectionMode="None" HorizontalAlignment="Stretch">
@@ -50,19 +56,10 @@
             </Border>
 
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">
-                <Grid Margin="12.5, 5, 12.5, 5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="100"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Spacing="10" Grid.Column="0">
-                        <TextBox Text="{x:Bind ViewModel.UpscaleImageDir, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Text="{x:Bind ViewModel.ConceptName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Folder name"/>
-                    </StackPanel>
-
-                    <ProgressRing IsActive="{x:Bind ViewModel.IsUpscalingInProgress, Mode=OneWay}" Grid.Column="1"/>
-                </Grid>
+                <StackPanel Spacing="10" Grid.Column="0">
+                    <TextBox Text="{x:Bind ViewModel.UpscaleImageDir, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Text="{x:Bind ViewModel.ConceptName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Folder name"/>
+                </StackPanel>
             </Border>
 
             <Border BorderThickness="2" BorderBrush="#3AAA" CornerRadius="5" Margin="20">

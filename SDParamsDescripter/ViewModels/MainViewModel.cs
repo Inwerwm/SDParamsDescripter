@@ -39,9 +39,11 @@ public partial class MainViewModel : ObservableRecipient
     [ObservableProperty]
     private bool _doesUseAnimeModel;
     [ObservableProperty]
-    private bool _isUpscalingInProgress;
-    [ObservableProperty]
     private bool _enableAutoPost;
+    [ObservableProperty]
+    private bool _enableUpscale;
+    [ObservableProperty]
+    private bool _enableReadParams;
     [ObservableProperty]
     private bool _retryWhenImageIsTooLarge;
 
@@ -87,8 +89,9 @@ public partial class MainViewModel : ObservableRecipient
         IsRunningQueueLoop = false;
 
         _doesUseAnimeModel = false;
-        _isUpscalingInProgress = false;
         _enableAutoPost = false;
+        _enableUpscale = true;
+        _enableReadParams = false;
         _retryWhenImageIsTooLarge = true;
 
         _isOpenTwitterErrorInfo = false;
@@ -168,14 +171,17 @@ public partial class MainViewModel : ObservableRecipient
             ReadDescription(imagePath);
         }
 
-        // Queueing
-        ImageTaskQueue.Add(new(
-            imagePath,
-            new(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), savePath, Replies.FullParameters, RetryWhenImageIsTooLarge),
-            EnableAutoPost,
-            DoesUseAnimeModel));
+        if (EnableUpscale || EnableAutoPost)
+        {
+            // Queueing
+            ImageTaskQueue.Add(new(
+                imagePath,
+                new(PostText.Replace("\r\n", "\n").Replace("\r", "\n"), savePath, Replies.FullParameters, RetryWhenImageIsTooLarge),
+                EnableAutoPost,
+                DoesUseAnimeModel));
 
-        _ = RunAllImageTasks();
+            _ = RunAllImageTasks();
+        }
     }
 
     private async Task RunAllImageTasks()
