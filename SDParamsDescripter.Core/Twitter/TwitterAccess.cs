@@ -49,8 +49,8 @@ public class TwitterAccess : IDisposable
         try
         {
             var media = await Context.UploadMediaAsync(image, "image/png", "tweet_image");
-            await Context.CreateMediaMetadataAsync(media.MediaID, FixNewLine(imageAltText));
-            await Context.TweetMediaAsync(FixNewLine(text), new[] { media.MediaID.ToString() });
+            await Context.CreateMediaMetadataAsync(media.MediaID, imageAltText.ReplaceLineEndings("\n"));
+            await Context.TweetMediaAsync(text.ReplaceLineEndings("\n"), new[] { media.MediaID.ToString() });
         }
         catch (TwitterQueryException ex)
         {
@@ -71,8 +71,6 @@ public class TwitterAccess : IDisposable
             await TweetWithMedia(text, Resize(image, 0.9f), imageAltText, resizeImageWhenTooLarge);
         }
     }
-
-    private string FixNewLine(string text) => text.ReplaceLineEndings().Replace(Environment.NewLine, "\n");
 
     private byte[] Resize(byte[] imageBytes, float scale)
     {
