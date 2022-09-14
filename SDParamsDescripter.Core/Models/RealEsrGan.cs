@@ -14,7 +14,7 @@ public class RealEsrGan : IDisposable
         get;
     }
 
-    public static string GetModelName(bool isAnime) => (isAnime ? "RealESRGAN_x4plus_anime_6B" : "RealESRGAN_x4plus");
+    public static string GetModelName() => "4x-UltraSharp";
 
     public RealEsrGan()
     {
@@ -22,9 +22,8 @@ public class RealEsrGan : IDisposable
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = "C:\\Users\\owner\\AppData\\Local\\Microsoft\\WindowsApps\\Microsoft.PowerShell_8wekyb3d8bbwe\\pwsh.exe",
-                Arguments = $"-ExecutionPolicy ByPass -NoExit -Command \"& 'C:\\ProgramData\\Anaconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\Users\\owner\\.conda\\envs\\ldm' \"",
-                WorkingDirectory = "D:\\stable-diffusion\\",
+                FileName = "pwsh.exe",
+                WorkingDirectory = "D:\\stable-diffusion\\ESRGAN",
                 RedirectStandardInput = true,
                 UseShellExecute = false,
                 CreateNoWindow = false,
@@ -38,7 +37,7 @@ public class RealEsrGan : IDisposable
         };
     }
 
-    public async Task RunAsync(string filePath, string savePath, bool isAnime, CancellationToken token)
+    public async Task RunAsync(string filePath, string savePath, CancellationToken token)
     {
         Watcher.Filter = Path.GetFileName(savePath);
         Watcher.Path = Path.GetDirectoryName(savePath);
@@ -67,7 +66,7 @@ public class RealEsrGan : IDisposable
 
         Watcher.EnableRaisingEvents = true;
 
-        Run(filePath, savePath, isAnime);
+        Run(filePath, savePath);
 
         await Task.Run(async () =>
         {
@@ -80,9 +79,9 @@ public class RealEsrGan : IDisposable
         }, token);
     }
 
-    public void Run(string filePath, string savePath, bool isAnime)
+    public void Run(string filePath, string savePath)
     {
-        StandardInput.WriteLine($"python scripts/realesrgan_only.py --file-path {filePath} --save-path {savePath} --realesrgan-model {GetModelName(isAnime)}");
+        StandardInput.WriteLine($"python upscale.py --source-path \"{filePath}\" --save-path \"{savePath}\"");
     }
 
     protected virtual void Dispose(bool disposing)

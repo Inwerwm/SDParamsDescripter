@@ -21,7 +21,7 @@ public partial class ImageTask : ObservableRecipient
             {Path.GetDirectoryName(SavePath) ?? ""}
 
         Upscale Model:
-            {RealEsrGan.GetModelName(DoesAnimeModel)}
+            {RealEsrGan.GetModelName()}
 
         Auto Post:
             {(EnablePost ? "Enable" : "Disable")}

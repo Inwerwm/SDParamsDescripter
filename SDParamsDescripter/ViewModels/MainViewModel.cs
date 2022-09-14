@@ -50,9 +50,10 @@ public partial class MainViewModel : ObservableRecipient
     [ObservableProperty]
     private string _twitterErrorMessage;
 
-    private IDescriptionSeparator Separator
+    private IDescriptionSeparator? Separator
     {
         get;
+        set;
     }
     private RealEsrGan UpScaler
     {
@@ -93,7 +94,8 @@ public partial class MainViewModel : ObservableRecipient
         _isOpenTwitterErrorInfo = false;
         _twitterErrorMessage = "";
 
-        Separator = new StableDiffusionWebUIDescriptionSeparator();
+        SetSeparator();
+
         UpScaler = new RealEsrGan();
         Cancellation = new();
 
@@ -104,6 +106,19 @@ public partial class MainViewModel : ObservableRecipient
             Properties.Resources.AccessTokenSecret);
 
         App.MainWindow.Closed += DisposeMembers;
+
+        PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(IsFromYaml))
+            {
+                SetSeparator();
+            }
+        };
+    }
+
+    private void SetSeparator()
+    {
+        Separator = IsFromYaml ? new StableDiffusionWebUIDescriptionSeparator() : new PngChunkDescriptionSeparator();
     }
 
     private void ReadFile(IStorageItem? file)
@@ -112,17 +127,18 @@ public partial class MainViewModel : ObservableRecipient
 
         switch (Path.GetExtension(file.Name))
         {
-            case ".yaml": ReadYaml(file.Path); break;
+            case ".yaml": if (IsFromYaml) { ReadDescription(file.Path); } break;
             case ".png": AddImageTask(file.Path); break;
             default: break;
         }
     }
 
-    public void ReadYaml(string yamlFilePath)
+    public void ReadDescription(string filePath)
     {
-        if (!File.Exists(yamlFilePath)) { return; }
+        if (!File.Exists(filePath)) { return; }
+        if(Separator is null) { return; }
 
-        Replies = Separator.Separate(yamlFilePath);
+        Replies = Separator.Separate(filePath);
         Prompts.Clear();
         foreach (var p in Replies.PromptReplies)
         {
@@ -145,7 +161,11 @@ public partial class MainViewModel : ObservableRecipient
             // Copy and read same name yaml file
             static string yamlName(string path) => Path.Combine(Path.GetDirectoryName(path) ?? "", Path.GetFileNameWithoutExtension(path) + ".yaml");
             File.Copy(yamlName(imagePath), yamlName(savePath), true);
-            ReadYaml(yamlName(imagePath));
+            ReadDescription(yamlName(imagePath));
+        }
+        else
+        {
+            ReadDescription(imagePath);
         }
 
         // Queueing
@@ -155,7 +175,7 @@ public partial class MainViewModel : ObservableRecipient
             EnableAutoPost,
             DoesUseAnimeModel));
 
-        RunAllImageTasks();
+        _ = RunAllImageTasks();
     }
 
     private async Task RunAllImageTasks()
@@ -175,7 +195,7 @@ public partial class MainViewModel : ObservableRecipient
                 }
 
                 current.IsProgress = true;
-                await UpScaler.RunAsync(current.ImagePath, current.SavePath, current.DoesAnimeModel, Cancellation.Token);
+                await UpScaler.RunAsync(current.ImagePath, current.SavePath, Cancellation.Token);
 
                 if (current.EnablePost)
                 {
