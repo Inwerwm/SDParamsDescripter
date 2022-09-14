@@ -18,7 +18,12 @@ public class PngChunkDescriptionSeparator : IDescriptionSeparator
         var lines = text.Value.ReplaceLineEndings().Split(Environment.NewLine);
         
         var prompt = lines[0];
-        var parameters = lines[1..].Where(l => !string.IsNullOrWhiteSpace(l)).TakeWhile(line => !line.StartsWith("Warning:")).SelectMany(line => line.Split(", "));
+        var parameters = lines[1..]
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .TakeWhile(line => !line.StartsWith("Warning:"))
+            .SelectMany(line => line.StartsWith("Negative prompt")
+                ? new[] { line.Replace("Negative prompt: ", "Negative prompt:\n") + "\n" } 
+                : line.Split(", "));
 
         var paramsString = string.Join(Environment.NewLine, parameters);
         return new($"""
