@@ -23,6 +23,8 @@ public partial class MainViewModel : ObservableRecipient
     private string _postText;
     [ObservableProperty]
     private bool _isFromYaml;
+    [ObservableProperty]
+    private bool _ignoreModelParameters;
 
     [ObservableProperty]
     private string _upscaleImageDir;
@@ -82,6 +84,7 @@ public partial class MainViewModel : ObservableRecipient
         _replies = new("", "", Array.Empty<PromptReply>());
         _prompts = new ObservableCollection<PromptReply>();
         _postText = localSettings.Values["postText"] as string ?? "#StableDiffusion\nThe #prompt is in ALT.";
+        _ignoreModelParameters = true;
 
         _upscaleImageDir = localSettings.Values["upscaleImageDir"] as string ?? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         _conceptName = localSettings.Values["conceptName"] as string ?? "";
@@ -141,7 +144,15 @@ public partial class MainViewModel : ObservableRecipient
         if (!File.Exists(filePath)) { return; }
         if(Separator is null) { return; }
 
-        Replies = Separator.Separate(filePath);
+        if (!IgnoreModelParameters)
+        {
+            Replies = Separator.Separate(filePath);
+        }
+        if (IgnoreModelParameters || Replies.FullParameters.Length >= 1000)
+        {
+            Replies = Separator.Separate(filePath, "Model hash", "Model", "Clip skip");
+        }
+
         Prompts.Clear();
         foreach (var p in Replies.PromptReplies)
         {
