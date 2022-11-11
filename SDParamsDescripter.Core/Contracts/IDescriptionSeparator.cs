@@ -3,5 +3,5 @@
 namespace SDParamsDescripter.Core.Contracts;
 public interface IDescriptionSeparator
 {
-    public DescriptionReplies Separate(string filePath);
+    public DescriptionReplies Separate(string filePath, params string[] excludingParameters);
 }
